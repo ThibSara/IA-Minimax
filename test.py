@@ -1,8 +1,18 @@
 
-# Each cell can be 'X', 'O', or ' '
+#each cell can be 'X', 'O', or ' '
+'''
 board=[[' ',' ',' '],[' ',' ',' '],[' ',' ',' ']]
 
-def gameOver(board):
+#display
+def displayBoard():
+    return '\n'.join(['|'.join(row) for row in board])
+
+def play():
+    print('Your turn to play')
+    linePos = input('chose the number of the line between 0 and 2')
+    columnPos= input('chose the number of the column between 0 and 2')
+
+def gameOver():
     for row in board:
         if row[0]!=' ' and row[1]==row[0] and row[1]==row[2]:
             return True
@@ -14,14 +24,5 @@ def gameOver(board):
     if board[0][2] != ' ' and board[0][2] == board[1][1] and board[1][1] == board[2][0]:
         return True
     return False
-
-gameOver(print(board))
     
-        
-    
-
-
-    
-
-
-        
+'''
