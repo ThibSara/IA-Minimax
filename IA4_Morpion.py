@@ -9,18 +9,25 @@ winning_combination = (
     (0,3,6),(1,4,7),(2,5,8),
     (0,4,8),(2,4,6))
 
-#impression du board
+# impression du tableau du tic tac toe
 def Print_Board():
     out = []
     for i in range(9):
         if (i%3 == 0) : out += "\n"
-        out += str(board[i])
+# on remplace les valeurs du tableau par des X et des O pour un effet visuel
+        if (board[i]==0):
+            out += ' '
+        elif (board[i]==1):
+            out+='X'
+        else:
+            out+='O'
     print(" | ".join(out)+' | ')
          
 
 # vérifie que le joueur peut jouer sur la case désirée, renvoie vrai si le mvt à été effectué, faux sinon
 def Result(joueur,mvt):
-    if (joueur == 1 or joueur == 2) and (mvt >= 0 and mvt < 9) and board[mvt] == 0:
+    mvt=mvt-1
+    if (joueur == 1) and (mvt >= 0 and mvt < 9) and board[mvt] == 0:
         board[mvt] = joueur
         return True
     return False
@@ -33,15 +40,28 @@ def TerminalTest(joueur):
             return True
     return False
 
-# Fonction pour savoir qui à gagné
-def evaluate():
-    if TerminalTest(1):
-        score = 1
-    elif TerminalTest(2):
-        score = 2
-    else:
-        score = 0
-    return score
+
+# retour le nombre de nombre de pair et singleton potentiellement gagnant
+# pair vaut 3 fois plus que singleton pour pousser à jouer au deuxième coups
+def evaluate(joueur=2):
+    cpt = 0
+    for pair in Set_Joueur(joueur, n=2):
+        for trio in winning_combination:
+            #if (element de pair dans trio AND le troisème element de trio vide) : cpt +=3
+            if pair[0] in trio and pair[1] in trio and board[trio[0]] * board[trio[1]] * board[trio[2]] == 0 :
+                #print(str(pair)+" in "+ str(trio))
+                cpt += 3
+    
+    for elem in Set_Joueur(joueur, n=1):
+        for trio in winning_combination:
+            #if (singleton dans trio AND les 2 autres elements de trio vide) : cpt +=1
+            if elem in trio and ( 
+                    board[trio[0]] + board[trio[1]] == 0 or
+                    board[trio[0]] + board[trio[2]] == 0 or
+                    board[trio[1]] + board[trio[2]] == 0 ):
+                #print(str(elem)+" in "+ str(trio))
+                cpt += 1
+    return cpt 
 
 # crée liste de toutes les combinaison du joueur de n jetons
 def Set_Joueur(joueur, n = 3):
@@ -66,7 +86,7 @@ def Set_Joueur(joueur, n = 3):
         out = idx
     return tuple(out)   
 
-def minimax(is_maximizing):
+def minimax(alpha,beta,is_maximizing):
     #retourne la valeur de la grille si la partie est finie
     if TerminalTest(0) or TerminalTest(1):
         return evaluate()
@@ -77,9 +97,12 @@ def minimax(is_maximizing):
         for i in range(9):
             if board[i]==0:
                 board[i]=2
-                score= minimax(False)
+                score= minimax(alpha,beta,False)
                 board[i]=0
                 best_score=max(score,best_score)
+                alpha=max(alpha,best_score)
+                if beta<= alpha:
+                    break
         return best_score
     
     #si c'est au tour du joueur on minimise
@@ -88,23 +111,29 @@ def minimax(is_maximizing):
         for i in range(9):
             if board[i]==0:
                 board[i]=1
-                score=minimax(True)
+                score=minimax(alpha,beta,True)
                 board[i]=0
                 best_score = min(score, best_score)
+                beta=min(beta,best_score)
+                if beta<=alpha:
+                    break
         return best_score
   
 #fonction pour que l'ordinateur joue le meilleur coup     
 def AiPlay():
     best_score=float('-inf')
     best_move=None
+    alpha = float('-inf')
+    beta = float('inf')
     for i in range(9):
         if board[i]==0:
-            board[i]==2
-            score =minimax(False)
+            board[i]=2
+            score =minimax(alpha,beta,False)
             board[i]=0
             if score>best_score:
                 best_score=score
                 best_move=i
+            alpha=max(alpha,best_score)
     board[best_move]=2
     Print_Board()
          
@@ -112,6 +141,7 @@ def AiPlay():
 if __name__ == '__main__':
     Print_Board()
     while not TerminalTest(2) and not TerminalTest(1) and 0 in board:
+        
         isPosCorrect = False
         while isPosCorrect ==False:
             pos = input('entrer numéro case: ')
@@ -124,7 +154,7 @@ if __name__ == '__main__':
     elif TerminalTest(1):
         print("Vous avez gagné!")
     else:
-        print("à toi")
+        print("égalité")
     
 
             
