@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Mai 01 18:24:07 2023
-
-@author: Ruben LEON TD°S
-Alog MinMax
-"""
-
 
 init_board = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 board = init_board
@@ -16,28 +9,146 @@ winning_combination = (
     (0,3,6),(1,4,7),(2,5,8),
     (0,4,8),(2,4,6))
 
+#impression du board
 def Print_Board():
     out = []
     for i in range(9):
         if (i%3 == 0) : out += "\n"
         out += str(board[i])
-    print(" ".join(out) )
-        
-       
-# renvoie une liste des actions possibles
-def Actions():
-    index=[]
-    for i in range(len(board)):
-        if board[i] == 0:
-            index.append(i+1)
-    return index
-    
+    print(" | ".join(out)+' | ')
+         
+
+# vérifie que le joueur peut jouer sur la case désirée, renvoie vrai si le mvt à été effectué, faux sinon
 def Result(joueur,mvt):
     if (joueur == 1 or joueur == 2) and (mvt >= 0 and mvt < 9) and board[mvt] == 0:
         board[mvt] = joueur
         return True
     return False
 
+
+#vérifie si un joueur à gagné la partie
+def TerminalTest(joueur):
+    for i in winning_combination:
+        if i in Set_Joueur(joueur,3):
+            return True
+    return False
+
+# Fonction pour savoir qui à gagné
+def evaluate():
+    if TerminalTest(1):
+        score = 1
+    elif TerminalTest(2):
+        score = 2
+    else:
+        score = 0
+    return score
+
+# crée liste de toutes les combinaison du joueur de n jetons
+def Set_Joueur(joueur, n = 3):
+    # recupère les position de tout les jeton du joueur
+    idx = [i for i in range(9) if board[i] == joueur]
+    
+    # si le joueur n'a pas posé assez de jeton pour pouvoir gagner
+    if len(idx) < n: 
+        return ()       
+    
+    # cree un tuple pour tout les set d'indexe possible
+    out = []
+    if n == 3:
+        for i in range(len(idx)-2):
+            for j in range(1,len(idx)-i-1):
+                out.append((idx[i], idx[i+j], idx[i+j+1]))
+    elif n == 2:
+        for i in range(len(idx)-1):
+            for j in range(1,len(idx)-i):
+                out.append((idx[i], idx[i+j]))
+    else:
+        out = idx
+    return tuple(out)   
+
+def minimax(is_maximizing):
+    #retourne la valeur de la grille si la partie est finie
+    if TerminalTest(0) or TerminalTest(1):
+        return evaluate()
+    
+    #si c'est au tour de l'ordi de jouer on maximise
+    if is_maximizing:
+        best_score  = float('-inf')
+        for i in range(9):
+            if board[i]==0:
+                board[i]=2
+                score= minimax(False)
+                board[i]=0
+                best_score=max(score,best_score)
+        return best_score
+    
+    #si c'est au tour du joueur on minimise
+    else:
+        best_score=float('inf')
+        for i in range(9):
+            if board[i]==0:
+                board[i]=1
+                score=minimax(True)
+                board[i]=0
+                best_score = min(score, best_score)
+        return best_score
+  
+#fonction pour que l'ordinateur joue le meilleur coup     
+def AiPlay():
+    best_score=float('-inf')
+    best_move=None
+    for i in range(9):
+        if board[i]==0:
+            board[i]==2
+            score =minimax(False)
+            board[i]=0
+            if score>best_score:
+                best_score=score
+                best_move=i
+    board[best_move]=2
+    Print_Board()
+         
+    
+if __name__ == '__main__':
+    Print_Board()
+    while not TerminalTest(2) and not TerminalTest(1) and 0 in board:
+        isPosCorrect = False
+        while isPosCorrect ==False:
+            pos = input('entrer numéro case: ')
+            isPosCorrect = Result(1,int(pos))
+        Result(1,int(pos))
+        Print_Board()
+        AiPlay()
+    if TerminalTest(2):
+        print("L'ordinateur a gagné!")
+    elif TerminalTest(1):
+        print("Vous avez gagné!")
+    else:
+        print("à toi")
+    
+
+            
+
+
+"""
+def minimax(depth,maximizingJoueur):
+    if depth==0 or TerminalTest()==False:
+        return Utility(maximizingJoueur)
+    if maximizingJoueur:
+        maxEval = float('-inf')
+        for a in Actions():
+            eval = minimax(a,depth-1,False)
+            maxEval = max(maxEval,eval)
+        return  maxEval
+    else:
+        minEval = float('inf')
+        for a in Actions():
+            eval = minimax(a,depth-1,True)
+            minEval = min(minEval,eval)
+        return  minEval
+  """  
+  
+"""
 # retour le nombre de nombre de pair et singleton potentielement gagnant
 # pair vaut 3 fois plus que singleton pour pousser à jouer au deuxième coups
 def Utility(joueur):
@@ -59,52 +170,26 @@ def Utility(joueur):
                 #print(str(elem)+" in "+ str(trio))
                 cpt += 1
     return cpt 
- 
+"""
 
-def TerminalTest():
-    for i in winning_combination:
-        if i in Set_Joueur(1,3) or i in Set_Joueur(2,3):
-            return True
-    return False
+'''
+# renvoie une liste des actions possibles
+def Actions():
+    index=[]
+    for i in range(len(board)):
+        if board[i] == 0:
+            index.append(i)
+    return index
+'''    
 
-
-# cree liste de toutes les combinaison du joueur de n jetons
-def Set_Joueur(joueur, n = 3):
-    # recupère les position de tout les jeton du joueur
-    idx = [i for i in range(9) if board[i] == joueur]
-    
-    # si le joueur n'a pas posé assez de jeton pour pouvoir gagner
-    if len(idx) < n: 
-        return ()       
-    
-    # cree un tuple pour tout les set d'indexe possible
-    out = []
-    if n == 3:
-        for i in range(len(idx)-2):
-            for j in range(1,len(idx)-i-1):
-                out.append((idx[i], idx[i+j], idx[i+j+1]))
-    elif n == 2:
-        for i in range(len(idx)-1):
-            for j in range(1,len(idx)-i):
-                out.append((idx[i], idx[i+j]))
+'''
+# Fonction pour savoir qui à gagné
+def evaluate():
+    if TerminalTest(1):
+        score = 1
+    elif TerminalTest(2):
+        score = 2
     else:
-        out = idx
-    
-    return tuple(out)   
-
-
-def minimax(depth,maximizingJoueur):
-    if depth==0 or TerminalTest()==False:
-        return Utility(maximizingJoueur)
-    if maximizingJoueur:
-        maxEval = float('-inf')
-        for a in Actions():
-            eval = minimax(a,depth-1,False)
-            maxEval = max(maxEval,eval)
-        return  maxEval
-    else:
-        minEval = float('inf')
-        for a in Actions():
-            eval = minimax(a,depth-1,True)
-            minEval = min(minEval,eval)
-        return  minEval
+        score = 0
+    return score
+'''
