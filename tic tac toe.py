@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-
-
+import random
 # liste des tuples de toutes les combinaisons gagnantes rangé par ordre croissant
 winning_combination = (
     (0,1,2),(3,4,5),(6,7,8),
     (0,3,6),(1,4,7),(2,5,8),
     (0,4,8),(2,4,6))
 
+# création de la classe d'un tableau de tic tac toe
 class Board:
     #definition d'un tableau de tic tac toe
     def __init__(self):
@@ -26,7 +26,7 @@ class Board:
                 out+='O'
         return (" | ".join(out)+' | ')
          
-    # vérifie que le joueur peut jouer sur la case désirée, renvoie vrai si le mvt à été effectué, faux sinon
+    # vérifie si le joueur peut jouer sur la case désirée, renvoie vrai si le mvt à été effectué, faux sinon
     def Result(self,mvt):
         if self.board[mvt] == 0:
             self.board[mvt] = 1
@@ -34,7 +34,7 @@ class Board:
         return False
 
 
-    #vérifie si un joueur à gagné la partie
+    # vérifie si un joueur à gagné la partie
     def TerminalTest(self,joueur):
         for i in winning_combination:
             if i in self.Set_Joueur(joueur,3):
@@ -64,12 +64,12 @@ class Board:
                     cpt += 1
         return cpt 
 
-    # crée liste de toutes les combinaison du joueur de n jetons
+    # crée une liste de toutes les combinaison du joueur de n combinaisons
     def Set_Joueur(self,joueur, n = 3):
         # recupère les position de tout les jeton du joueur
         idx = [i for i in range(9) if self.board[i] == joueur]
     
-        # si le joueur n'a pas posé assez de jeton pour pouvoir gagner
+        # si le joueur n'a pas posé assez de combinaisons pour pouvoir gagner
         if len(idx) < n: 
             return ()       
     
@@ -87,6 +87,7 @@ class Board:
             out = idx
         return tuple(out)   
 
+    # fonction minimax avec elagage alpha beta
     def minimax(self,alpha,beta,is_maximizing):
         #retourne la valeur de la grille si la partie est finie
         if self.TerminalTest(0) or self.TerminalTest(1):
@@ -137,10 +138,13 @@ class Board:
                 alpha=max(alpha,best_score)
         if best_move is not None:
             self.board[best_move]=2
-        #self.Print_Board()
-        
-       
-
+            return best_move # renvoie le coup joué
+        else:
+        # Aucun coup possible
+            return random.randint(0,8) # Ou une autre valeur spéciale
+#fin des fonctions de la classe Board
+ 
+# impression du tableau d'ultimate tic tac toe      
 def print_ultimate_board(ultimate_board):
     for i in range(0, 9, 3):
         if i % 3 == 0:
@@ -151,7 +155,7 @@ def print_ultimate_board(ultimate_board):
             print(row_str)
         
  
- #ultimate_terminal_test
+# vérifie si l'un des joueurs à gagné l'ultimate tic tac toe
 def ultimate_Terminal_Test(joueur,ultimate_board):
     ultimate_res_board = Board() # crée un sous tableau de ultimate board avec sur chaque case la valeur du gagnant ou 0 si nul
     for i in range(9):
@@ -161,39 +165,70 @@ def ultimate_Terminal_Test(joueur,ultimate_board):
         return True
     return False
             
-    
+# boucle de jeu   
 if __name__ == '__main__':
     ultimate_board = [Board() for i in range(9)]
     print_ultimate_board(ultimate_board)
+    #boardPos c'est la position dans le tableau ultimate
+    boardPos= 4 # choix que l'ia fait par défaut à chaque fois 
+    premier_tour = True
+    premier_joueur = input('taper 1 si le joueur commence ou 2 si l\'ordinateur commence: ')
     
-    #premier_joueur = input('taper 1 si le joueur commence ou 2 si l\'ordinateur commence')
     #cas ou le joueur commence
-    
-    
-    while not ultimate_Terminal_Test(1,ultimate_board) and not ultimate_Terminal_Test(2,ultimate_board): # rajouter le cas ou c'est nul ? 
-        #vérifie que la position entrée dans l'ultimate board est correcte
-        isPosCorrect = False
-        while isPosCorrect==False:
-            boardPos = int(input('entrer numéro board: '))
-            if boardPos>0 and boardPos<10:
-                isPosCorrect=True
-        boardPos-=1
-    
-        #vérifie que la position entrée dans le sous tableau est correcte
-        isPosCorrect=False
-        while isPosCorrect ==False:
-            pos = int(input('entrer numéro case: '))
-            if pos>0  and pos<10 and ultimate_board[boardPos].Result(pos-1)==True:
-                isPosCorrect=True
-        pos-=1
-    
-        #imprime le tableau avec la nouvelle entrée
-        ultimate_board[boardPos].Result(pos)
-        print_ultimate_board(ultimate_board)
-    
-        # l'ia joue en fonction de la derniere position de la case
-        ultimate_board[pos].AiPlay()
-        print_ultimate_board(ultimate_board)
+    if premier_joueur=='1':
+        while not ultimate_Terminal_Test(1,ultimate_board) and not ultimate_Terminal_Test(2,ultimate_board):            
+            
+            # permet au joueur de choisir la position dans le tableau ultimate au premier tour et vérifie que la position est correcte
+            if premier_tour:
+                premier_tour=False
+                isPosCorrect = False
+                while isPosCorrect==False:
+                    boardPos = int(input('entrer numéro board: '))
+                    if boardPos>0 and boardPos<10:
+                        isPosCorrect=True
+                boardPos-=1
+        
+            #permet au joueur de choisir la position dans le tableau vérifie que la position entrée dans le sous tableau est correcte également
+            #pos représente la position dans le sous tableau
+            isPosCorrect=False
+            while isPosCorrect ==False:
+                pos = int(input('entrer numéro case: '))
+                if pos>0  and pos<10 and ultimate_board[boardPos].Result(pos-1)==True:
+                    isPosCorrect=True
+            pos-=1
+        
+            #imprime le tableau avec la nouvelle entrée
+            ultimate_board[boardPos].Result(pos)
+            print_ultimate_board(ultimate_board)
+        
+            # l'ia joue en fonction de la derniere position de la case (pos)
+            print(" \n Au tour de l'ordinateur: \n")
+            boardPos = ultimate_board[pos].AiPlay()
+            print_ultimate_board(ultimate_board)
+     
+     
+    #cas ou l'ordinateur commence
+    else:
+        while not ultimate_Terminal_Test(1,ultimate_board) and not ultimate_Terminal_Test(2,ultimate_board):       
+            
+            #l'ia joue en fonction de la derniere position de la case
+            print(" \n Au tour de l'ordinateur: \n")
+            boardPos= ultimate_board[boardPos].AiPlay() # on récupère la position (pos) choisie par l'ia
+            print_ultimate_board(ultimate_board)
+            
+            #vérifie que la position entrée par le joueur dans le sous tableau est correcte
+            isPosCorrect=False
+            while isPosCorrect ==False:
+                pos = int(input('entrer numéro case: '))
+                if pos>0  and pos<10 and ultimate_board[boardPos].Result(pos-1)==True:
+                    isPosCorrect=True
+            pos-=1
+        
+            #imprime le tableau avec la nouvelle entrée
+            ultimate_board[boardPos].Result(pos)
+            print_ultimate_board(ultimate_board)
+            boardPos=pos 
+        
         
     if ultimate_Terminal_Test(2,ultimate_board):
         print("L'ordinateur a gagné!")
@@ -201,24 +236,3 @@ if __name__ == '__main__':
         print("Vous avez gagné!")
     else:
         print("égalité")
-
-    
-    
-    """
-    b = Board()
-    b.Print_Board()
-    while not b.TerminalTest(2) and not b.TerminalTest(1) and 0 in b.board:     
-        isPosCorrect = False
-        while isPosCorrect ==False:
-            pos = input('entrer numéro case: ')
-            isPosCorrect = b.Result(1,int(pos))
-        b.Result(1,int(pos))
-        b.Print_Board()
-        b.AiPlay()
-    if b.TerminalTest(2):
-        print("L'ordinateur a gagné!")
-    elif b.TerminalTest(1):
-        print("Vous avez gagné!")
-    else:
-        print("égalité")
-    """
