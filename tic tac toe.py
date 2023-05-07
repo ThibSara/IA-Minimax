@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+#ultimate tic tac toe
+
 import random
 # liste des tuples de toutes les combinaisons gagnantes rangé par ordre croissant
 winning_combination = (
@@ -212,8 +214,7 @@ if __name__ == '__main__':
      
     #cas ou l'ordinateur commence
     else:
-        while not ultimate_Terminal_Test(1,ultimate_board) and not ultimate_Terminal_Test(2,ultimate_board):       
-            
+        while not ultimate_Terminal_Test(1,ultimate_board) and not ultimate_Terminal_Test(2,ultimate_board):                
             #l'ia joue en fonction de la derniere position de la case
             print(" \n Au tour de l'ordinateur: \n")
             boardPos= ultimate_board[boardPos].AiPlay() # on récupère la position (pos) choisie par l'ia
