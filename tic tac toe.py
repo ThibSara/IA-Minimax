@@ -11,6 +11,9 @@ class Board:
     #definition d'un tableau de tic tac toe
     def __init__(self):
         self.board = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    
+    def set_board(self,x,i):
+        self.board[i] = x
 
     # impression du tableau du tic tac toe
     def Print_Board(self):
@@ -160,7 +163,7 @@ def ultimate_Terminal_Test(joueur,ultimate_board):
     ultimate_res_board = Board() # crée un sous tableau de ultimate board avec sur chaque case la valeur du gagnant ou 0 si nul
     for i in range(9):
         if ultimate_board[i].TerminalTest(joueur):
-            ultimate_board[i]=1
+            ultimate_board[i].set_board(1,i)
     if ultimate_res_board.TerminalTest(joueur): # on regarde si un des joueurs à une combinaison gagnante
         return True
     return False
