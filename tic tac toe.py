@@ -95,7 +95,7 @@ class Board:
     # fonction minimax avec elagage alpha beta
     def minimax(self,alpha,beta,is_maximizing):
         #retourne la valeur de la grille si la partie est finie
-        if self.TerminalTest(0) or self.TerminalTest(1):
+        if self.TerminalTest(2) or self.TerminalTest(1):
             return self.evaluate()
     
         #si c'est au tour de l'ordi de jouer on maximise
