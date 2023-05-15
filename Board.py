@@ -1,3 +1,6 @@
+import Board
+from Player import Adversaire
+
 class Board:
     def __init__(self, board = None):
         if board is None:
@@ -6,16 +9,13 @@ class Board:
             self.board = board
         self.winner = 0
 
-    def __str__ (self):
+    def __str__(self):
         out = []
         for i in range(9):
             if (i%3 == 0) : out += "\n"
-            if (self.board[i]==0):
-                out += ' '
-            elif (self.board[i]==1):
-                out+='X'
-            else:
-                out+='O'
+            if (self.board[i]==0) : out += ' '
+            elif (self.board[i]==1) : out+='X'
+            else : out+='O'
         return (" | ".join(out)+' | ')
 
     # Trie les combinaisons potentiellement gagnant et retroune :
@@ -27,18 +27,18 @@ class Board:
     #   -ET si les autres cases du winning_trio sont vides
     def Evaluate(self, joueur):
         cpt = 0
-        for trio in self.SetJoueur(joueur, n=3):
+        for trio in Board.SetJoueur(self.board, joueur, n=3):
             for winning in winning_combination:
                 if trio[0] in winning and trio[1] in winning and trio[2] in winning:
                     cpt += 9
 
-        for pair in self.SetJoueur(joueur, n=2):
+        for pair in Board.SetJoueur(self.board, joueur, n=2):
             for trio in winning_combination:
                 #if (chaque element de pair dans trio) AND le troisème element du trio vide
                 if pair[0] in trio and pair[1] in trio and self.board[trio[0]] * self.board[trio[1]] * self.board[trio[2]] == 0 :
                     cpt += 3
     
-        for jeton in self.SetJoueur(joueur, n=1):
+        for jeton in Board.SetJoueur(self.board, joueur, n=1):
             for trio in winning_combination:
                 #if (jeton dans trio) AND (les 2 autres elements de trio vide)
                 if jeton in trio and ( 
@@ -48,8 +48,9 @@ class Board:
                     cpt += 1 
         return cpt 
     
-    # Verifie si la partie est fini et initialise dans ce cas le parametre winner
+    # Verifie si la partie est fini et met à jour Boar.winner
     def TerminalTest(self):
+        #retourne le gagnant si il existe
         for i in winning_combination:
             if i in self.SetJoueur(1, 3):
                 self.winner = 1
@@ -57,6 +58,12 @@ class Board:
             elif i in self.SetJoueur(2, 3):
                 self.winner = 2
                 return 2
+
+        #retourne -1 il c'est un match null
+        if all(case != 0 for case in self.board):
+            return -1
+        
+        #retourne 0 si la partie est encore en cours
         return 0
     
 
@@ -86,39 +93,62 @@ def SetJoueur(board, joueur, n = 3):
 
 # Calcul de l'interet à joueur sur une case des cases du board
 # Fonction mise en dehors du boar pour éviter toute moification du véritable board
-def Minimax(game : Board, alpha, beta, joueur, isPlaying = True):
-    #retourne la valeur de la grille si la partie est finie
+# Initialisé à False car la dernière étapes est différentes et se fait dans le Board.IAPlay
+def Minmax(game : Board, alpha, beta, joueur, maximazing = False):
+    # Retourne l'évaluation du jeu du joueur à la fin du minmax  
     if game.TerminalTest != 0:
-        return game.Evaluate(game.winner)
+        return game.Evaluate(joueur)
     
-    if isPlaying:
+    possible_move = filter(lambda idx : game.board[idx] == 0, range(9))
+    if maximazing:
         best_score  = float('-inf')
-        for idx in range(9):
-            if game.board[idx] == 0:
-                game.board[idx] = joueur
-                score = Minimax(game, alpha, beta, joueur, False) 
-                best_score = max(best_score,score)
-                alpha = max(alpha,best_score)
-                if beta <= alpha:
-                    break
+        for move in possible_move:
+            game.board[move] = joueur
+            score = Minmax(game, alpha, beta, joueur, False) 
+            best_score = max(best_score,score)
+            alpha = max(alpha,best_score)
+            if beta <= alpha:
+                break
         return best_score
     else:
         best_score=float('inf')
-        for idx in range(9):
-            if game.board[idx] == 0:
-                game.board[idx] = Adversaire(joueur)
-                score = Minimax(game, alpha, beta, joueur, True)
-                best_score = min(best_score,score)
-                beta = min(beta,best_score)
-                if beta<=alpha:
-                    break
+        for move in possible_move:
+            game.board[move] = Adversaire(joueur)
+            score = Minmax(game, alpha, beta, joueur, True)
+            best_score = min(best_score,score)
+            beta = min(beta,best_score)
+            if beta<=alpha:
+                break
         return best_score
 
-# Renvoie le nombre de l'adversaire du joueur en parametre
-def Adversaire(joueur):
-    if joueur == 1:
-        return 2
-    return 1
+
+
+# Renvoie le mouvement choisi par le joueur si c'est une IA
+def AIPlay(game : Board, joueur):
+    best_score = float('-inf')
+    best_move = None
+    alpha = float('-inf')
+    beta = float('inf')
+    possible_move = filter(lambda idx : game.board[idx] == 0, range(9))
+    for move in possible_move:
+        game.board[move] = joueur
+        score = Minmax(game, alpha, beta, joueur)
+        best_score = max(best_score,score)
+        beta = max(beta,best_score)
+        if score == best_score:
+            best_move = move
+        if beta<=alpha:
+            break
+    return best_move
+
+# Demande le prochain mouvement à un joueur Humain
+def HumanPlay(game : Board):
+    move = int(input("Poser un jeton : "))
+    
+    possible_move = filter(lambda idx : game.board[idx] == 0, range(9))
+    while move not in possible_move:
+        move = int(input("Donner une case encore vierge : "))
+    return move
 
 # Liste de toutes les combinaisons gagnantes rangé par ordre croissant
 winning_combination = (
