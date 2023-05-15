@@ -1,24 +1,27 @@
 class Player:
-    def __init__(self,joueur, isIA):
-        self.joueur = joueur
-        self.isIA = isIA
-        #composante isIA uniquement utilisé dans Main car classe crée tardivement
-    
+    def __init__(self,J1_is_AI = False, J2_is_AI = True):
+        self.J1 = J1_is_AI
+        self.J2 = J2_is_AI
+        self.currentPlayer = 1
+        
     def __str__(self):
-        return str(self.joueur)
+        return str(self.currentPlayer)
     
     def __int__(self):
-        return int(self.joueur)
+        return int(self.currentPlayer)
     
-    def ChgmtTour(self, j1, j2):
-        if self.joueur == j1 :
-            return j2
-        return j1
+    def NextTurn(self):
+        if self.currentPlayer == 1:
+            self.currentPlayer = 2
+        else :
+            self.currentPlayer = 1
+    
+    def isAI(self):
+        if self.currentPlayer == 1:
+            return self.J1
+        return self.J2
 
-
-
-
-# Renvoie le nombre de l'adversaire du joueur en parametre
+# Renvoie le int du joueur adverse
 def Adversaire(joueur):
     if joueur == 1:
         return 2

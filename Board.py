@@ -1,4 +1,3 @@
-import Board
 from Player import Adversaire
 
 class Board:
@@ -13,9 +12,10 @@ class Board:
         out = []
         for i in range(9):
             if (i%3 == 0) : out += "\n"
-            if (self.board[i]==0) : out += ' '
-            elif (self.board[i]==1) : out+='X'
-            else : out+='O'
+            
+            if (self.board[i]==0) :     out += ' '
+            elif (self.board[i]==1) :   out += 'X'
+            else :                      out += 'O'
         return (" | ".join(out)+' | ')
 
     # Trie les combinaisons potentiellement gagnant et retroune :
@@ -67,6 +67,10 @@ class Board:
         #retourne 0 si la partie est encore en cours
         return 0
     
+    # Fait une list de tout les mouvements possible
+    def PossibleMove(self):
+        return [idx for idx in range(9) if self.board[idx] == 0]
+    
 
 # Récupère la liste de tout les jetons du joueur placé en parametre
 # Renvoie toutes les combinaisons possible de n-éléments de cette liste
@@ -95,17 +99,16 @@ def SetJoueur(board, joueur, n = 3):
 # Calcul de l'interet à joueur sur une case des cases du board
 # Fonction mise en dehors du boar pour éviter toute moification du véritable board
 # Initialisé à False car la dernière étapes est différentes et se fait dans le Board.IAPlay
-def Deported(game : Board, alpha, beta, joueur, maximazing = False):
+def Minmax(game : Board, alpha, beta, joueur, maximazing = False):
     # Retourne l'évaluation du jeu du joueur à la fin du minmax  
     if game.TerminalTest != 0:
         return game.Evaluate(joueur)
     
-    possible_move = list(filter(lambda idx : game.board[idx] == 0, range(9)))
     if maximazing:
         best_score  = float('-inf')
-        for move in possible_move:
+        for move in game.PossibleMove():
             game.board[move] = joueur
-            score = Deported(game, alpha, beta, joueur, False) 
+            score = Minmax(game, alpha, beta, joueur, False) 
             best_score = max(best_score,score)
             alpha = max(alpha,best_score)
             if beta <= alpha:
@@ -113,16 +116,14 @@ def Deported(game : Board, alpha, beta, joueur, maximazing = False):
         return best_score
     else:
         best_score=float('inf')
-        for move in possible_move:
+        for move in game.PossibleMove():
             game.board[move] = Adversaire(joueur)
-            score = Deported(game, alpha, beta, joueur, True)
+            score = Minmax(game, alpha, beta, joueur, True)
             best_score = min(best_score,score)
             beta = min(beta,best_score)
             if beta<=alpha:
                 break
         return best_score
-
-
 
 # Renvoie le mouvement choisi par le joueur si c'est une IA
 def AIPlay(game : Board, joueur):
@@ -130,10 +131,11 @@ def AIPlay(game : Board, joueur):
     best_move = None
     alpha = float('-inf')
     beta = float('inf')
-    possible_move = list(filter(lambda idx : game.board[idx] == 0, range(9)))
-    for move in possible_move:
-        game.board[move] = joueur
-        score = Deported(game, alpha, beta, joueur)
+    temp_board = game
+    
+    for move in temp_board.PossibleMove():
+        temp_board.board[move] = joueur
+        score = Minmax(temp_board, alpha, beta, joueur)
         best_score = max(best_score,score)
         beta = max(beta,best_score)
         if score == best_score:
@@ -145,9 +147,7 @@ def AIPlay(game : Board, joueur):
 # Demande le prochain mouvement à un joueur Humain
 def HumanPlay(game : Board):
     move = int(input("Poser un jeton : "))
-    
-    possible_move = list(filter(lambda idx : game.board[idx] == 0, range(9)))
-    while move not in possible_move:
+    while move not in game.PossibleMove():
         move = int(input("Donner une case encore vierge : "))
     return move
 
